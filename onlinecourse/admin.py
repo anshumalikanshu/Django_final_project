@@ -18,9 +18,7 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ['name', 'description']
 
 
-class LessonAdmin(admin.ModelAdmin):
-    list_display = ['title']
-    inlines = [QuestionLinkInline]
+
 
 # <HINT> Register Question and Choice models here
 
@@ -45,7 +43,9 @@ class QuestionLinkInline(admin.TabularInline):
     # Django 1.8 introduced this, no need to make your own link
     show_change_link = True
 
-
+class LessonAdmin(admin.ModelAdmin):
+    list_display = ['title']
+    inlines = [QuestionLinkInline]
 
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Lesson, LessonAdmin)
