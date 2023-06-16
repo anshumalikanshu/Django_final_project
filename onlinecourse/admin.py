@@ -24,11 +24,11 @@ class CourseAdmin(admin.ModelAdmin):
 
  
 
-class ChoiceDateInline(admin.StackedInline):
+class ChoiceInline(admin.StackedInline):
     model = Choice
 
 class QuestionAdmin(admin.ModelAdmin):
-    inlines = [ChoiceDateInline,]
+    inlines = [ChoiceInline,]
 admin.site.register(Question ,QuestionAdmin)
 
 # Person has Certificates inline but rather
