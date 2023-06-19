@@ -55,13 +55,13 @@
 
 
             <p>
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                  Button with data-target
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseE" aria-expanded="false" aria-controls="collapseExample">
+                  Take Test
                 </button>
               </p>
-              <div class="collapse" id="collapseExample">
+              <div class="collapse" id="collapseE">
                 <div class="card card-body">
-                    <form id="questionform" action="point to a submit view" method="post">
+                    <form id="questionform" action="{% url 'onlinecourse:submit' course.id %}" method="post">
                         {% for lesson in course.lesson_set.all %}
                         {% for question  in  lesson.question_set.all %}
                         <div class="card mt-1">
