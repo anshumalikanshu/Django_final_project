@@ -111,26 +111,33 @@ def enroll(request, course_id):
          # Add each selected choice object to the submission object
          # Redirect to show_exam_result with the submission id
 def submit(request, course_id):
-    if (request.user.is_authenticated & request.method=="POST") :
-        enrollment = Enrollment.objects.filter(course=course_id , user = request.user.id)
+    if ((request.user.is_authenticated) and (request.method=="POST")) :
+        course = Course.objects.get(pk = course_id)
+        enrollment = Enrollment(course=course , user = request.user)
+        enrollment.save()
         print("=================in sumit and the enrollment is ")
         print (enrollment)
         answers = extract_answers(request)
-        print("=================in sumit and the answers is ")
-        print (answers)
-        submission = Submission.objects.create(enrollment)
+
+        submission = Submission(enrollment = enrollment )
+        submission.save()
+        sumission_id = submission.pk
         print("=================in sumit and the submission is ")
-        print (submission)
-        
+        print (sumission_id)
 
-        return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id,sumission_id)))
+        choice_answers = Choice.objects.filter(pk__in  =  answers )
+
+        for choice_answer in choice_answers:
+                      
+            print("=================in sumit and the choice_answer is ")
+            print (choice_answer)
+            submission.chocies.add(choice_answer)
+
+       
+
+
+        return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id,sumission_id )))
     
-
-
-
-
-
-
 
 # <HINT> A example method to collect the selected choices from the exam form from the request object
 def extract_answers(request):
@@ -149,8 +156,26 @@ def extract_answers(request):
         # Get the selected choice ids from the submission record
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
-def show_exam_result(request, course_id, submission_id):
-    pass 
+def show_exam_result(request, course_id, submission_id ):
+    
+    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
+    course = get_object_or_404(Course, pk=course_id)
+
+    enrollment = Enrollment.objects.get_or_create(course = course , user = request.user)
+
+    submission = Submission.objects.values("chocies").filter(enrollment = enrollment)
+    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
+    print(submission)
+
+    
+    course_questions_answered = Question.objects.values( "txt_question", "choice_set__txt_choice", "choice_set__is_correct" ) .filter( choice_set__id__in = submission  )  
+    
+    print("================= try 2 in show_exam_result and the course_questions_answered is "+ str(course_id) + " " + str(submission_id))
+    print(course_questions_answered)
+
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', {'grade': '90' , 'question_answers ' : {} , "course":course })
+
+    
 
 
 
