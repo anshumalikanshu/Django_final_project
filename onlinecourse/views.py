@@ -9,11 +9,11 @@ from django.views import generic
 from django.db import models
 from django.contrib.auth import login, logout, authenticate
 import logging
-from django.db.models import Value
+from django.db.models import Case, Value, When
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 # Create your views here.
-
+from pprint import pprint
 
 def registration_request(request):
     context = {}
@@ -159,30 +159,42 @@ def extract_answers(request):
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
 def show_exam_result(request, course_id, submission_id ):
-    
+    context = {}
     print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     course = get_object_or_404(Course, pk=course_id)
 
     enrollment = Enrollment.objects.filter(course = course , user = request.user).last()
 
     submission = Submission.objects.values("chocies").filter(enrollment = enrollment)
-    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
-    print(submission)
+    # print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
+    print(submission) #jbjb
 
     
-    course_questions_answered = Question.objects.annotate(scored = Value(False, output_field = models.BooleanField() )).filter( lesson__course__id  = course_id  ) 
+    course_questions_answered = Question.objects.annotate( 
+                                 scored = Value(False, output_field = models.BooleanField() )
+                                 ) .filter( lesson__course__id  = course_id  ) 
     
-    print("================= try 2 in show_exam_result and the course_questions_answered is "+ str(course_id) + " " + str(submission_id))
-    print(course_questions_answered)
+    print("================= try 2 in show_exam_result and the course_questions_answered is in line 177"+ str(course_id) + " " + str(submission_id))
+  
     grade = 0
     for cqa in course_questions_answered:
         cqa.scored = cqa.is_get_score(submission)
+        print(" questions = ")
+        pprint(cqa)
+        # for Icource in cqa.course.all():
+        #     print (Icource)
         if  cqa.scored :
             grade += cqa.question_grade 
 
-        print(cqa.scored)
+       
 
-    return render(request, 'onlinecourse/exam_result_bootstrap.html', {'grade': grade , 'question_answers ' : course_questions_answered , "course":course })
+    print(course_questions_answered)
+
+    context['grade'] = grade
+    context['question_answers'] = course_questions_answered
+    context['course'] = course
+
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', context )
 
     
 
