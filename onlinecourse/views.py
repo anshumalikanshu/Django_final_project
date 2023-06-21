@@ -170,14 +170,19 @@ def show_exam_result(request, course_id, submission_id ):
     print(submission)
 
     
-    course_questions_answered = Question.objects.annotate(scored = Value(False, output_field = models.BooleanField() )).filter( choice__id__in = submission  ) 
+    course_questions_answered = Question.objects.annotate(scored = Value(False, output_field = models.BooleanField() )).filter( lesson__course__id  = course_id  ) 
     
     print("================= try 2 in show_exam_result and the course_questions_answered is "+ str(course_id) + " " + str(submission_id))
+    print(course_questions_answered)
+    grade = 0
     for cqa in course_questions_answered:
         cqa.scored = cqa.is_get_score(submission)
+        if  cqa.scored :
+            grade += cqa.question_grade 
+
         print(cqa.scored)
 
-    return render(request, 'onlinecourse/exam_result_bootstrap.html', {'grade': '90' , 'question_answers ' : {} , "course":course })
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', {'grade': grade , 'question_answers ' : course_questions_answered , "course":course })
 
     
 

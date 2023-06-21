@@ -99,7 +99,7 @@ class Question(models.Model):
     # Foreign key to lesson
     lesson = models.ForeignKey(Lesson,on_delete=models.CASCADE, primary_key=False)
     txt_question = models.TextField(max_length=400)
-    question_grade = models.SmallIntegerField(max_length=3)
+    question_grade = models.SmallIntegerField()
 
 
     def is_get_score(self, selected_ids):
