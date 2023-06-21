@@ -6,8 +6,10 @@ from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
+from django.db import models
 from django.contrib.auth import login, logout, authenticate
 import logging
+from django.db.models import Value
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 # Create your views here.
@@ -161,17 +163,19 @@ def show_exam_result(request, course_id, submission_id ):
     print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     course = get_object_or_404(Course, pk=course_id)
 
-    enrollment = Enrollment.objects.get_or_create(course = course , user = request.user)
+    enrollment = Enrollment.objects.filter(course = course , user = request.user).last()
 
     submission = Submission.objects.values("chocies").filter(enrollment = enrollment)
     print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     print(submission)
 
     
-    course_questions_answered = Question.objects.values( "txt_question", "choice_set__txt_choice", "choice_set__is_correct" ) .filter( choice_set__id__in = submission  )  
+    course_questions_answered = Question.objects.annotate(scored = Value(False, output_field = models.BooleanField() )).filter( choice__id__in = submission  ) 
     
     print("================= try 2 in show_exam_result and the course_questions_answered is "+ str(course_id) + " " + str(submission_id))
-    print(course_questions_answered)
+    for cqa in course_questions_answered:
+        cqa.scored = cqa.is_get_score(submission)
+        print(cqa.scored)
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', {'grade': '90' , 'question_answers ' : {} , "course":course })
 
