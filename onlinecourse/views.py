@@ -160,39 +160,39 @@ def extract_answers(request):
         # Calculate the total score
 def show_exam_result(request, course_id, submission_id ):
     context = {}
-    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
+    # print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     course = get_object_or_404(Course, pk=course_id)
 
     enrollment = Enrollment.objects.filter(course = course , user = request.user).last()
 
-    submission = Submission.objects.values("chocies").filter(enrollment = enrollment)
-    # print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
-    print(submission) #jbjb
+    submission = Submission.objects.values("chocies").filter(enrollment = enrollment) # add submissionid
+    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
+    print( list(submission)  )
 
     
     course_questions_answered = Question.objects.annotate( 
                                  scored = Value(False, output_field = models.BooleanField() )
-                                 ) .filter( lesson__course__id  = course_id  ) 
+                                 ) .prefetch_related('choice_set').filter( lesson__course__id  = course_id  ) 
     
     print("================= try 2 in show_exam_result and the course_questions_answered is in line 177"+ str(course_id) + " " + str(submission_id))
   
     grade = 0
     for cqa in course_questions_answered:
         cqa.scored = cqa.is_get_score(submission)
-        print(" questions = ")
-        pprint(cqa)
-        # for Icource in cqa.course.all():
-        #     print (Icource)
+        
+           
         if  cqa.scored :
             grade += cqa.question_grade 
 
        
 
-    print(course_questions_answered)
+    # print(course_questions_answered)
 
     context['grade'] = grade
     context['question_answers'] = course_questions_answered
     context['course'] = course
+    context['submission'] = list(submission)
+    nlist = [ choice for choices value in submission ] 
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context )
 
