@@ -105,38 +105,27 @@ def enroll(request, course_id):
     return HttpResponseRedirect(reverse(viewname='onlinecourse:course_details', args=(course.id,)))
 
 
-# <HINT> Create a submit view to create an exam submission record for a course enrollment,
-# you may implement it based on following logic:
-         # Get user and course object, then get the associated enrollment object created when the user enrolled the course
-         # Create a submission object referring to the enrollment
-         # Collect the selected choices from exam form
-         # Add each selected choice object to the submission object
-         # Redirect to show_exam_result with the submission id
 def submit(request, course_id):
     if ((request.user.is_authenticated) and (request.method=="POST")) :
         course = Course.objects.get(pk = course_id)
         enrollment = Enrollment(course=course , user = request.user)
         enrollment.save()
-        print("=================in sumit and the enrollment is ")
-        print (enrollment)
+        # print("=================in sumit and the enrollment is ")
+        # print (enrollment)
         answers = extract_answers(request)
 
         submission = Submission(enrollment = enrollment )
         submission.save()
         sumission_id = submission.pk
-        print("=================in sumit and the submission is ")
-        print (sumission_id)
+        # print("=================in sumit and the submission is ")
+        # print (sumission_id)
 
         choice_answers = Choice.objects.filter(pk__in  =  answers )
 
         for choice_answer in choice_answers:
-                      
-            print("=================in sumit and the choice_answer is ")
-            print (choice_answer)
-            submission.chocies.add(choice_answer)
-
-       
-
+            submission.chocies.add(choice_answer)           
+            # print("=================in sumit and the choice_answer is ")
+            # print (choice_answer)
 
         return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course_id,sumission_id )))
     
@@ -151,34 +140,29 @@ def extract_answers(request):
            submitted_anwsers.append(choice_id)
    return submitted_anwsers
 
-
-# <HINT> Create an exam result view to check if learner passed exam and show their question results and result for each question,
-# you may implement it based on the following logic:
-        # Get course and submission based on their ids
-        # Get the selected choice ids from the submission record
-        # For each selected choice, check if it is a correct answer or not
-        # Calculate the total score
 def show_exam_result(request, course_id, submission_id ):
     context = {}
     # print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     course = get_object_or_404(Course, pk=course_id)
-
     enrollment = Enrollment.objects.filter(course = course , user = request.user).last()
-
-    submission = Submission.objects.values("chocies").filter(enrollment = enrollment) # add submissionid
-    print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
-    print( list(submission)  )
-
+    submissions = Submission.objects.values("chocies").filter(enrollment = enrollment , pk = submission_id) # add submissionid
+    # print("================= try 2 in show_exam_result and the submission is "+ str(course_id) + " " + str(submission_id))
     
+    lst_submissions =[]
+    for submission in submissions:
+        lst_submissions.append(submission['chocies'])
+    # print( lst_submissions ) 
+
+  
     course_questions_answered = Question.objects.annotate( 
                                  scored = Value(False, output_field = models.BooleanField() )
                                  ) .prefetch_related('choice_set').filter( lesson__course__id  = course_id  ) 
     
-    print("================= try 2 in show_exam_result and the course_questions_answered is in line 177"+ str(course_id) + " " + str(submission_id))
+    # print("================= try 2 in show_exam_result and the course_questions_answered is in line 177"+ str(course_id) + " " + str(submission_id))
   
     grade = 0
     for cqa in course_questions_answered:
-        cqa.scored = cqa.is_get_score(submission)
+        cqa.scored = cqa.is_get_score(submissions)
         
            
         if  cqa.scored :
@@ -191,8 +175,8 @@ def show_exam_result(request, course_id, submission_id ):
     context['grade'] = grade
     context['question_answers'] = course_questions_answered
     context['course'] = course
-    context['submission'] = list(submission)
-    nlist = [ choice for choices value in submission ] 
+    context['submission'] = list(lst_submissions)
+   
 
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context )
 

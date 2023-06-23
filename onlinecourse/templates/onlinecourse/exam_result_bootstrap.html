@@ -53,28 +53,24 @@
         {% for question_answer  in  question_answers %}
 
                         <div class="card mt-1">
-                            <div class="card-body">
+                            <div class="card-body bg-light ">
                                 <h5 class="card-title">{{ question_answer.txt_question}} </h5>
-                            <h1> scored =  {{ question_answer.scored}} </h1> 
-                            <h1> submission =  {{ submission }} </h1> 
+                            <!-- <h1> scored =  {{ question_answer.scored}} </h1> 
+                            <h1> submission =  {{ submission }} </h1>  -->
                         </div>       
                              <ul class="list-group list-group-flush">
                                 {% for choice  in  question_answer.choice_set.all %}
-                                {%  with nc = {'chocies' : choice.id} %}
-
-
-                                {% if   ( nc in  submission ) %}  
-                               <h1>I have been selected {{choice .txt_choice }} </h1>
-                             {% else %}  
-                               <h1> I have been not selected  {{choice .txt_choice }} </h1>
-                               
-                                {%endif%}
-                                {% endwith %}
-                                {% if choice.is_correct  %} 
+                                                         
                                 
-                                  <li class="list-group-item text-success"> Correct answer: {{ choice.txt_choice }} </li>
-                                {% else %}
-                                <li class="list-group-item text-danger">  {{ choice.txt_choice }} </li>
+                                {% if  choice.is_correct  and choice.id in submission  %} 
+                                
+                                  <li class="list-group-item text-success font-weight-bold"> Correct answer: {{ choice.txt_choice }} </li>
+                                  {% elif  choice.is_correct  and  not choice.id in submission  %} 
+                                
+                                  <li class="list-group-item text-warning font-weight-bold"> Not selected: {{ choice.txt_choice }} </li>
+
+                                {% elif   choice.id in  submission  %}
+                                <li class="list-group-item text-primary font-weight-bold ">  {{ choice.txt_choice }} </li>
                              {%endif%}
                                    
                             
